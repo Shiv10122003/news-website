@@ -1,6 +1,6 @@
 // Example usage of image fallback functionality
 
-import React from "react";
+
 import { getPlaceholderImage } from "../utils/imageUtils";
 
 // Example of how the image fallback works:
