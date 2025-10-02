@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Search, Menu, MapPin, Bell } from "lucide-react";
 import type { Region } from "../types";
 
@@ -43,10 +44,10 @@ const Header: React.FC<HeaderProps> = ({
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
+          <Link to="/" className="flex items-center">
             <h1 className="text-3xl font-bold">NewsHub India</h1>
             <span className="text-yellow-300 text-sm ml-2">Regional News</span>
-          </div>
+          </Link>
 
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="flex-1 max-w-md mx-8">
@@ -98,24 +99,45 @@ const Header: React.FC<HeaderProps> = ({
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-6 text-sm">
-              <a href="#" className="hover:text-yellow-300 transition-colors">
+              <Link to="/" className="hover:text-yellow-300 transition-colors">
+                Home
+              </Link>
+              <Link
+                to="/top-news"
+                className="hover:text-yellow-300 transition-colors"
+              >
                 Top News
-              </a>
-              <a href="#" className="hover:text-yellow-300 transition-colors">
+              </Link>
+              <Link
+                to="/politics"
+                className="hover:text-yellow-300 transition-colors"
+              >
                 Politics
-              </a>
-              <a href="#" className="hover:text-yellow-300 transition-colors">
+              </Link>
+              <Link
+                to="/sports"
+                className="hover:text-yellow-300 transition-colors"
+              >
                 Sports
-              </a>
-              <a href="#" className="hover:text-yellow-300 transition-colors">
+              </Link>
+              <Link
+                to="/entertainment"
+                className="hover:text-yellow-300 transition-colors"
+              >
                 Entertainment
-              </a>
-              <a href="#" className="hover:text-yellow-300 transition-colors">
+              </Link>
+              <Link
+                to="/business"
+                className="hover:text-yellow-300 transition-colors"
+              >
                 Business
-              </a>
-              <a href="#" className="hover:text-yellow-300 transition-colors">
+              </Link>
+              <Link
+                to="/technology"
+                className="hover:text-yellow-300 transition-colors"
+              >
                 Technology
-              </a>
+              </Link>
             </div>
           </div>
         </div>

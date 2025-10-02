@@ -8,6 +8,7 @@ export interface NewsArticle {
   imageUrl: string;
   category: string;
   region: string;
+  url?: string;
   isBreaking?: boolean;
   readTime: number;
   views: number;

@@ -28,6 +28,7 @@ const convertNewsDataArticle = (article: NewsDataArticle): NewsArticle => {
       "https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=800",
     category: article.category?.[0] || "General",
     region: getRegionFromKeywords(article.keywords, article.country),
+    url: article.link, // Add the external URL from NewsData.io
     isBreaking: isBreakingNews(article.keywords, article.title),
     readTime: calculateReadTime(article.content || article.description || ""),
     views: Math.floor(Math.random() * 2000) + 100, // Mock views since API doesn't provide this
@@ -105,36 +106,41 @@ const generateMockNews = (count: number): NewsArticle[] => {
       title:
         "Punjab Announces New Agricultural Reforms: Major Relief for Farmers",
       content:
-        "The Punjab government has announced a new scheme for farmers...",
+        "The Punjab government has announced a comprehensive new agricultural scheme that promises to bring significant relief to farmers across the state. This landmark policy includes direct cash transfers, subsidized seeds, and improved irrigation facilities. The initiative is expected to benefit over 2 million farmers and boost agricultural productivity by 30%. The Chief Minister announced that the scheme will be implemented in phases starting next month, with an initial budget allocation of ₹5,000 crores. Farmer organizations have welcomed the move, calling it a game-changer for the agricultural sector in Punjab.",
       summary:
-        "Punjab government announces significant agricultural sector reforms.",
+        "Punjab government announces significant agricultural sector reforms with ₹5,000 crore budget allocation.",
       author: "Rahul Sharma",
       category: "Agriculture",
       region: "Punjab",
       isBreaking: true,
       tags: ["Agriculture", "Punjab", "Government"],
+      url: null, // Internal article
     },
     {
       title: "Haryana Launches New IT Policy: Job Opportunities for Youth",
       content:
-        "Haryana government has created a new policy to promote the IT sector...",
-      summary: "New policy announced for IT sector development in Haryana.",
+        "The Haryana government has unveiled its new Information Technology policy aimed at creating thousands of job opportunities for the state's youth. The policy includes setting up IT parks in major cities, offering tax incentives to tech companies, and establishing skill development centers. The government estimates that this initiative will create over 100,000 direct and indirect jobs in the next five years. Major IT companies have already expressed interest in setting up operations in the state, with several MoUs expected to be signed soon. The policy also includes provisions for startups and incubation centers to foster innovation and entrepreneurship among young professionals.",
+      summary:
+        "New IT policy announced for Haryana with focus on job creation and youth employment.",
       author: "Priya Gupta",
       category: "Technology",
       region: "Haryana",
       isBreaking: false,
       tags: ["IT", "Haryana", "Employment"],
+      url: "https://example.com/haryana-it-policy", // External link
     },
     {
       title: "Delhi Pollution Levels Drop: AQI Shows Improvement",
       content:
-        "Air quality in Delhi has shown improvement compared to last week...",
-      summary: "Significant improvement recorded in Delhi's Air Quality Index.",
+        "Air quality in Delhi has shown significant improvement over the past week, with the Air Quality Index (AQI) dropping from hazardous to moderate levels. Environmental experts attribute this improvement to favorable wind conditions, reduced vehicular emissions, and effective implementation of pollution control measures. The Delhi government's odd-even vehicle scheme and restrictions on construction activities have contributed to this positive change. Citizens have reported better visibility and reduced respiratory problems. However, authorities caution that sustained efforts are needed to maintain these improvements, especially with the approaching winter season when pollution levels typically spike.",
+      summary:
+        "Significant improvement recorded in Delhi's Air Quality Index due to pollution control measures.",
       author: "Amit Kumar",
       category: "Environment",
       region: "Delhi",
       isBreaking: false,
       tags: ["Pollution", "Delhi", "Environment"],
+      url: null, // Internal article
     },
   ];
 
@@ -143,7 +149,8 @@ const generateMockNews = (count: number): NewsArticle[] => {
     const baseArticle = baseNews[i % baseNews.length];
     mockNews.push({
       id: `mock-${i + 1}`,
-      title: `${baseArticle.title} - Update ${i + 1}`,
+      title:
+        i === 0 ? baseArticle.title : `${baseArticle.title} - Update ${i + 1}`,
       content: baseArticle.content,
       summary: baseArticle.summary,
       author: baseArticle.author,
@@ -151,6 +158,7 @@ const generateMockNews = (count: number): NewsArticle[] => {
       imageUrl: `https://images.unsplash.com/photo-${1574323347407 + i}?w=800`,
       category: baseArticle.category,
       region: baseArticle.region,
+      url: baseArticle.url || undefined,
       isBreaking: baseArticle.isBreaking && i < 3,
       readTime: Math.floor(Math.random() * 8) + 2,
       views: Math.floor(Math.random() * 2000) + 100,
@@ -373,6 +381,66 @@ export const newsAPI = {
       return {
         data: filteredNews,
         message: "Search completed from fallback",
+        status: 200,
+      };
+    }
+  },
+
+  // Get news by category
+  getNewsByCategory: async (
+    category: string,
+    page: number = 1,
+    size: number = 10
+  ): Promise<APIResponse<NewsArticle[]>> => {
+    try {
+      // Map category names to NewsData.io categories
+      const categoryMap: { [key: string]: string } = {
+        politics: "politics",
+        sports: "sports",
+        entertainment: "entertainment",
+        business: "business",
+        technology: "technology",
+        "top-news": "top",
+      };
+
+      const apiCategory = categoryMap[category] || category;
+
+      const response = await axios.get<NewsDataResponse>(
+        `${NEWSDATA_BASE_URL}/news`,
+        {
+          params: {
+            apikey: NEWSDATA_API_KEY,
+            country: "in",
+            category: apiCategory,
+            language: "en",
+            size: size,
+          },
+        }
+      );
+
+      const articles = response.data.results.map(convertNewsDataArticle);
+
+      return {
+        data: articles,
+        message: "Category news fetched successfully",
+        status: 200,
+      };
+    } catch (error) {
+      console.error("Error fetching category news:", error);
+      // Fallback to mock data filtered by category
+      let filteredNews = mockNews.filter((article) => {
+        if (category === "top-news") return true;
+        return article.category.toLowerCase().includes(category.toLowerCase());
+      });
+
+      // Apply pagination to mock data
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      filteredNews = filteredNews.slice(startIndex, endIndex);
+
+      return {
+        data: filteredNews,
+        message: "Category news fetched from fallback",
         status: 200,
       };
     }

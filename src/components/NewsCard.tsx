@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Clock, Eye, ExternalLink } from "lucide-react";
 import type { NewsArticle } from "../types";
+import {
+  getPlaceholderImage,
+  createImageErrorHandler,
+} from "../utils/imageUtils";
 
 interface NewsCardProps {
   article: NewsArticle;
@@ -13,6 +18,26 @@ const NewsCard: React.FC<NewsCardProps> = ({
   size = "medium",
   showImage = true,
 }) => {
+  const navigate = useNavigate();
+  const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+
+  const handleImageError = createImageErrorHandler(article.id, setImageErrors);
+
+  const handleReadMore = () => {
+    if (article.url) {
+      // If article has external URL, open in new tab
+      window.open(article.url, "_blank", "noopener,noreferrer");
+    } else {
+      // Navigate to internal article detail page
+      navigate(`/article/${article.id}`);
+    }
+  };
+
+  const handleCardClick = () => {
+    handleReadMore();
+  };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("hi-IN", {
@@ -46,13 +71,21 @@ const NewsCard: React.FC<NewsCardProps> = ({
   };
 
   return (
-    <article className={cardClasses[size]}>
+    <article
+      className={`${cardClasses[size]} cursor-pointer`}
+      onClick={handleCardClick}
+    >
       {showImage && (
         <div className="relative">
           <img
-            src={article.imageUrl}
+            src={
+              imageErrors[article.id] || !article.imageUrl
+                ? getPlaceholderImage(article.id, "news")
+                : article.imageUrl
+            }
             alt={article.title}
             className={imageClasses[size]}
+            onError={handleImageError}
           />
           {article.isBreaking && (
             <span className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
@@ -77,6 +110,10 @@ const NewsCard: React.FC<NewsCardProps> = ({
         </div>
 
         <h2
+          onClick={(e) => {
+            e.stopPropagation();
+            handleReadMore();
+          }}
           className={`font-bold text-gray-900 mb-2 line-clamp-2 hover:text-red-600 cursor-pointer transition-colors ${
             size === "large"
               ? "text-xl"
@@ -114,7 +151,13 @@ const NewsCard: React.FC<NewsCardProps> = ({
           ))}
         </div>
 
-        <button className="mt-3 flex items-center space-x-1 text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleReadMore();
+          }}
+          className="mt-3 flex items-center space-x-1 text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+        >
           <span>Read More</span>
           <ExternalLink className="h-3 w-3" />
         </button>

@@ -1,6 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { TrendingUp, Star, Clock } from "lucide-react";
 import type { NewsArticle } from "../types";
+import {
+  getPlaceholderImage,
+  createImageErrorHandler,
+} from "../utils/imageUtils";
 
 interface SidebarProps {
   featuredNews: NewsArticle[];
@@ -8,6 +12,10 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ featuredNews, trendingNews }) => {
+  const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("hi-IN", {
@@ -31,9 +39,14 @@ const Sidebar: React.FC<SidebarProps> = ({ featuredNews, trendingNews }) => {
               className="flex space-x-3 pb-3 border-b border-gray-100 last:border-b-0"
             >
               <img
-                src={article.imageUrl}
+                src={
+                  imageErrors[article.id] || !article.imageUrl
+                    ? getPlaceholderImage(article.id, "sidebar")
+                    : article.imageUrl
+                }
                 alt={article.title}
                 className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                onError={createImageErrorHandler(article.id, setImageErrors)}
               />
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-red-600 cursor-pointer transition-colors">
