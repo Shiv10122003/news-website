@@ -3,41 +3,38 @@ import type { NewsArticle, Region, APIResponse } from "../types";
 import { saveToCache, getFromCache, CACHE_DURATION } from "../utils/cacheUtils";
 
 // GNews.io API configuration
-const GNEWS_API_KEY = "5976875253e08b83e09c4f1030fe724f";
+const GNEWS_API_KEY = import.meta.env.VITE_GNEWS_API_KEY;
 // Use CORS proxy to bypass CORS restrictions on production
-const GNEWS_BASE_URL = import.meta.env.PROD
-  ? "https://api.allorigins.win/raw?url=https://gnews.io/api/v4"
-  : "https://gnews.io/api/v4";
+console.log("GNEWS_API_KEY:", GNEWS_API_KEY , import.meta.env.VITE_ENV === "development");
 
-// Pagination cache to track pagination for different queries
+
+const GNEWS_BASE_URL ="https://newsdata.io/api/1/latest"
+
 interface PaginationCache {
   [key: string]: number;
 }
 
 const paginationCache: PaginationCache = {};
 
-// API instance
-// Removed unused 'api' declaration.
 
-// Helper function to convert GNews.io article to our NewsArticle format
 const convertGNewsArticle = (article: any): NewsArticle => {
   return {
-    id: article.url, // GNews doesn't have article_id, use URL as unique ID
+    id: article.article_id || article.link, 
     title: article.title || "No title available",
     content: article.content || article.description || "No content available",
-    summary: article.description || article.title.substring(0, 150) + "...",
-    author: article.source?.name || "Unknown",
-    publishedAt: article.publishedAt,
+    summary: article.description || article.title?.substring(0, 150) + "...",
+    author: article.source_id || article.creator?.[0] || "Unknown",
+    publishedAt: article.pubDate || article.publishedAt,
     imageUrl:
-      article.image ||
+      article.image_url ||
       "https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=800",
-    category: "General",
-    region: "India",
-    url: article.url,
+    category: article.category?.[0] || "General",
+    region: article.country?.[0] || "India",
+    url: article.link || article.url,
     isBreaking: false,
     readTime: calculateReadTime(article.content || article.description || ""),
     views: Math.floor(Math.random() * 2000) + 100,
-    tags: [],
+    tags: article.keywords || [],
   };
 };
 
@@ -131,22 +128,22 @@ export const newsAPI = {
       const params: any = {
         apikey: GNEWS_API_KEY,
         country: "in",
-        lang: "en",
-        max: size > 10 ? 10 : size, // GNews max is 10
+        language: "en",
         q: query,
+        size: size,
       };
 
       // Add date range for pages > 1
       if (page > 1) {
-        params.from = fromDate.toISOString().split("T")[0];
-        params.to = toDate.toISOString().split("T")[0];
+        params.from_date = fromDate.toISOString().split("T")[0];
+        params.to_date = toDate.toISOString().split("T")[0];
       }
 
-      const response = await axios.get(`${GNEWS_BASE_URL}/top-headlines`, {
+      const response = await axios.get(`${GNEWS_BASE_URL}`, {
         params: params,
       });
 
-      const articles = response.data.articles.map(convertGNewsArticle);
+      const articles = (response.data.results || []).map(convertGNewsArticle);
 
       // Save to cache (only page 1 for primary content)
       if (page === 1) {
@@ -187,7 +184,7 @@ export const newsAPI = {
     }
   },
 
-  // Get breaking news
+ 
   getBreakingNews: async (): Promise<APIResponse<NewsArticle[]>> => {
     const cacheKey = "news-breaking";
 
@@ -203,16 +200,16 @@ export const newsAPI = {
     }
 
     try {
-      const response = await axios.get(`${GNEWS_BASE_URL}/top-headlines`, {
+      const response = await axios.get(`${GNEWS_BASE_URL}`, {
         params: {
           apikey: GNEWS_API_KEY,
           country: "in",
-          lang: "en",
-          max: 5,
+          language: "en",
+          size: 5,
         },
       });
-
-      const articles = response.data.articles.map(convertGNewsArticle);
+      const rawArticle = response?.data?.results || [];
+      const articles = rawArticle.map(convertGNewsArticle);
 
       // Save to cache with shorter duration (breaking news changes quickly)
       saveToCache(cacheKey, articles, CACHE_DURATION.SHORT);
@@ -270,16 +267,16 @@ export const newsAPI = {
     }
 
     try {
-      const response = await axios.get(`${GNEWS_BASE_URL}/top-headlines`, {
+      const response = await axios.get(`${GNEWS_BASE_URL}`, {
         params: {
           apikey: GNEWS_API_KEY,
           country: "in",
-          lang: "en",
-          max: limit,
+          language: "en",
+          size: limit,
         },
       });
 
-      const articles = response.data.articles.map(convertGNewsArticle);
+      const articles = (response.data.results || []).map(convertGNewsArticle);
 
       // Save to cache
       saveToCache(cacheKey, articles, CACHE_DURATION.MEDIUM);
@@ -338,17 +335,17 @@ export const newsAPI = {
         }
       }
 
-      const response = await axios.get(`${GNEWS_BASE_URL}/search`, {
+      const response = await axios.get(`${GNEWS_BASE_URL}`, {
         params: {
           apikey: GNEWS_API_KEY,
           q: searchQuery,
-          lang: "en",
+          language: "en",
           country: "in",
-          max: 15,
+          size: 15,
         },
       });
 
-      const articles = response.data.articles.map(convertGNewsArticle);
+      const articles = (response.data.results || []).map(convertGNewsArticle);
 
       return {
         data: articles,
@@ -454,22 +451,22 @@ export const newsAPI = {
       const params: any = {
         apikey: GNEWS_API_KEY,
         q: searchTopic,
-        lang: "en",
+        language: "en",
         country: "in",
-        max: size > 10 ? 10 : size, // GNews max is 10
+        size: size > 10 ? 10 : size,
       };
 
       // Add date range for pages > 1
       if (page > 1) {
-        params.from = fromDate.toISOString().split("T")[0];
-        params.to = toDate.toISOString().split("T")[0];
+        params.from_date = fromDate.toISOString().split("T")[0];
+        params.to_date = toDate.toISOString().split("T")[0];
       }
 
-      const response = await axios.get(`${GNEWS_BASE_URL}/search`, {
+      const response = await axios.get(`${GNEWS_BASE_URL}`, {
         params: params,
       });
 
-      const articles = response.data.articles.map(convertGNewsArticle);
+      const articles = (response.data.results || []).map(convertGNewsArticle);
 
       // Save to cache (only page 1 for primary content)
       if (page === 1) {
@@ -511,3 +508,4 @@ export const newsAPI = {
     }
   },
 };
+
