@@ -3,7 +3,7 @@ import type { NewsArticle, Region, APIResponse } from "../types";
 import { saveToCache, getFromCache, CACHE_DURATION } from "../utils/cacheUtils";
 
 // GNews.io API configuration
-const GNEWS_API_KEY = "2132dcccd9af6cfd100a9dbd3e35e1aa";
+const GNEWS_API_KEY = "5976875253e08b83e09c4f1030fe724f";
 const GNEWS_BASE_URL = "https://gnews.io/api/v4";
 
 // Pagination cache to track pagination for different queries
