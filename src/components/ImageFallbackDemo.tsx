@@ -1,6 +1,5 @@
 // Example usage of image fallback functionality
 
-
 import { getPlaceholderImage } from "../utils/imageUtils";
 
 // Example of how the image fallback works:
@@ -15,7 +14,7 @@ const ImageFallbackDemo = () => {
       <img
         src="https://invalid-url.com/broken-image.jpg"
         alt="Demo"
-        className="w-full h-48 object-cover rounded"
+        className="w-full h-48 object-contain bg-gray-100 rounded"
         onError={(e) => {
           const target = e.target as HTMLImageElement;
           target.src = getPlaceholderImage("demo-article-1", "news");

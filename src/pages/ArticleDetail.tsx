@@ -73,11 +73,11 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ articles = [] }) => {
           {/* Article */}
           <article className="bg-white rounded-lg shadow-lg overflow-hidden">
             {/* Article Header */}
-            <div className="relative">
+            <div className="relative bg-gray-100">
               <img
                 src={article.imageUrl}
                 alt={article.title}
-                className="w-full h-96 object-cover"
+                className="w-full h-96 object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src =

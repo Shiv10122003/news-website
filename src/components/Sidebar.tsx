@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ featuredNews, trendingNews }) => {
                     : article.imageUrl
                 }
                 alt={article.title}
-                className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                className="w-16 h-16 rounded-lg object-contain bg-gray-100 flex-shrink-0"
                 onError={createImageErrorHandler(article.id, setImageErrors)}
               />
               <div className="flex-1 min-w-0">

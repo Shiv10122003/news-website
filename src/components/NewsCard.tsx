@@ -65,9 +65,9 @@ const NewsCard: React.FC<NewsCardProps> = ({
   };
 
   const imageClasses = {
-    small: "w-full h-32 object-cover",
-    medium: "w-full h-48 object-cover",
-    large: "w-full h-64 object-cover",
+    small: "w-full h-32 object-contain bg-gray-100",
+    medium: "w-full h-48 object-contain bg-gray-100",
+    large: "w-full h-64 object-contain bg-gray-100",
   };
 
   return (

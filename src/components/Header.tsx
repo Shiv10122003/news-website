@@ -82,9 +82,6 @@ const Header: React.FC<HeaderProps> = ({
                 onChange={(e) => onRegionChange(e.target.value)}
                 className="bg-transparent border border-red-400 rounded px-3 py-1 text-sm focus:outline-none focus:border-yellow-300"
               >
-                <option value="all" className="text-gray-800">
-                  All Regions
-                </option>
                 {regions.map((region) => (
                   <option
                     key={region.id}
