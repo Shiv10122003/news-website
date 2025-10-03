@@ -4,7 +4,10 @@ import { saveToCache, getFromCache, CACHE_DURATION } from "../utils/cacheUtils";
 
 // GNews.io API configuration
 const GNEWS_API_KEY = "5976875253e08b83e09c4f1030fe724f";
-const GNEWS_BASE_URL = "https://gnews.io/api/v4";
+// Use CORS proxy to bypass CORS restrictions on production
+const GNEWS_BASE_URL = import.meta.env.PROD
+  ? "https://api.allorigins.win/raw?url=https://gnews.io/api/v4"
+  : "https://gnews.io/api/v4";
 
 // Pagination cache to track pagination for different queries
 interface PaginationCache {
