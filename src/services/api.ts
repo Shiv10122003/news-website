@@ -108,23 +108,23 @@ export const newsAPI = {
 
       const paginationKey = `region-${regionCode}`;
 
-      // For page 1, reset pagination
+    
       if (page === 1) {
         paginationCache[paginationKey] = 1;
       }
 
-      // Get query variations for this region
+      
       const queryVariations = regionQueriesMap[regionCode] || ["India"];
       const query = queryVariations[(page - 1) % queryVariations.length];
 
-      // Calculate date range for pagination (to get different/older news)
+      
       const daysAgo = (page - 1) * 7;
       const toDate = new Date();
       toDate.setDate(toDate.getDate() - daysAgo);
       const fromDate = new Date(toDate);
       fromDate.setDate(fromDate.getDate() - 7);
 
-      // Build request parameters for GNews API
+    
       const params: any = {
         apikey: GNEWS_API_KEY,
         country: "in",
@@ -133,7 +133,7 @@ export const newsAPI = {
         size: size,
       };
 
-      // Add date range for pages > 1
+    
       if (page > 1) {
         params.from_date = fromDate.toISOString().split("T")[0];
         params.to_date = toDate.toISOString().split("T")[0];
@@ -145,7 +145,7 @@ export const newsAPI = {
 
       const articles = (response.data.results || []).map(convertGNewsArticle);
 
-      // Save to cache (only page 1 for primary content)
+      
       if (page === 1) {
         saveToCache(cacheKey, articles, CACHE_DURATION.MEDIUM);
         console.log(`Saved to cache: ${cacheKey}`);
@@ -159,12 +159,12 @@ export const newsAPI = {
     } catch (error: any) {
       console.error("Error fetching news:", error);
 
-      // If 429 error, try to return expired cache as fallback
+      
       if (error.response?.status === 429) {
         console.warn(
           "⚠️ Rate limit exceeded (429). Attempting to use cached data..."
         );
-        const expiredCache = getFromCache<NewsArticle[]>(cacheKey, true); // Ignore expiration
+        const expiredCache = getFromCache<NewsArticle[]>(cacheKey, true);
         if (expiredCache && expiredCache.length > 0) {
           console.log("✅ Returning expired cache to avoid 429 error");
           return {
@@ -175,7 +175,7 @@ export const newsAPI = {
         }
       }
 
-      // Return error response
+      
       return {
         data: [],
         message: error.response?.data?.message || "Failed to fetch news",
@@ -188,7 +188,7 @@ export const newsAPI = {
   getBreakingNews: async (): Promise<APIResponse<NewsArticle[]>> => {
     const cacheKey = "news-breaking";
 
-    // Try to get from cache first
+    
     const cachedData = getFromCache<NewsArticle[]>(cacheKey);
     if (cachedData && cachedData.length > 0) {
       console.log("Loaded breaking news from cache");
@@ -211,7 +211,7 @@ export const newsAPI = {
       const rawArticle = response?.data?.results || [];
       const articles = rawArticle.map(convertGNewsArticle);
 
-      // Save to cache with shorter duration (breaking news changes quickly)
+      
       saveToCache(cacheKey, articles, CACHE_DURATION.SHORT);
       console.log("Saved breaking news to cache");
 
@@ -223,7 +223,7 @@ export const newsAPI = {
     } catch (error: any) {
       console.error("Error fetching breaking news:", error);
 
-      // If 429 error, try to return expired cache as fallback
+  
       if (error.response?.status === 429) {
         console.warn(
           "⚠️ Rate limit exceeded (429). Attempting to use cached breaking news..."
@@ -239,7 +239,7 @@ export const newsAPI = {
         }
       }
 
-      // Return error response
+    
       return {
         data: [],
         message:
@@ -249,7 +249,7 @@ export const newsAPI = {
     }
   },
 
-  // Get featured news
+  
   getFeaturedNews: async (
     limit: number = 10
   ): Promise<APIResponse<NewsArticle[]>> => {
@@ -316,8 +316,7 @@ export const newsAPI = {
     }
   },
 
-  // Search news
-  // Search news
+  
   searchNews: async (
     query: string,
     region?: string
@@ -387,7 +386,7 @@ export const newsAPI = {
     }
 
     try {
-      // Map category names to search topics with variations for pagination
+      
       const categoryMap: { [key: string]: string[] } = {
         politics: [
           "politics India",
@@ -428,26 +427,25 @@ export const newsAPI = {
       };
 
       const searchVariations = categoryMap[category] || ["India"];
-      // Use different search variation for different pages
+      
       const searchTopic =
         searchVariations[(page - 1) % searchVariations.length];
 
       const paginationKey = `category-${category}`;
 
-      // For page 1, reset pagination
+      
       if (page === 1) {
         paginationCache[paginationKey] = 1;
       }
 
-      // Calculate date range for pagination (to get different/older news)
-      // Page 1: last 7 days, Page 2: 7-14 days ago, etc.
+      
       const daysAgo = (page - 1) * 7;
       const toDate = new Date();
       toDate.setDate(toDate.getDate() - daysAgo);
       const fromDate = new Date(toDate);
       fromDate.setDate(fromDate.getDate() - 7);
 
-      // Build request parameters for GNews
+      
       const params: any = {
         apikey: GNEWS_API_KEY,
         q: searchTopic,
@@ -456,7 +454,7 @@ export const newsAPI = {
         size: size > 10 ? 10 : size,
       };
 
-      // Add date range for pages > 1
+    
       if (page > 1) {
         params.from_date = fromDate.toISOString().split("T")[0];
         params.to_date = toDate.toISOString().split("T")[0];
@@ -468,7 +466,7 @@ export const newsAPI = {
 
       const articles = (response.data.results || []).map(convertGNewsArticle);
 
-      // Save to cache (only page 1 for primary content)
+
       if (page === 1) {
         saveToCache(cacheKey, articles, CACHE_DURATION.MEDIUM);
         console.log(`Saved to cache: ${cacheKey}`);
@@ -482,7 +480,7 @@ export const newsAPI = {
     } catch (error: any) {
       console.error("Error fetching category news:", error);
 
-      // If 429 error, try to return expired cache as fallback
+      
       if (error.response?.status === 429) {
         console.warn(
           "⚠️ Rate limit exceeded (429). Attempting to use cached data..."
@@ -498,7 +496,7 @@ export const newsAPI = {
         }
       }
 
-      // Return error response
+      
       return {
         data: [],
         message:
